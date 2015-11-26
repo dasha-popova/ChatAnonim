@@ -6,10 +6,10 @@
 #include <iostream>
 #include <sstream>
 
-class HelloFastCGI : virtual public fastcgi::Component, virtual public fastcgi::Handler
+class Hello : virtual public fastcgi::Component, virtual public fastcgi::Handler
 {
     public:
-        HelloFastCGI(fastcgi::ComponentContext *context) :
+        Hello(fastcgi::ComponentContext *context) :
                 fastcgi::Component(context)
         {
 
@@ -28,7 +28,7 @@ class HelloFastCGI : virtual public fastcgi::Component, virtual public fastcgi::
         virtual void handleRequest(fastcgi::Request *request, fastcgi::HandlerContext *context)
         {
                 request->setContentType("text/plain");
-                std::stringbuf buffer("Hello World!");
+                std::stringbuf buffer("Hello World!\n");
                 request->write(&buffer);
         }
 };

@@ -16,8 +16,8 @@ private:
 	queue<Message> messages_to_sent;
 
 public:
-	Room() : room_id(""), max_count_users(10){}
-	Room(const string rid) : room_id(rid), max_count_users(10){}
+	Room() : max_count_users(10), room_id("") {}
+	Room(const string rid) : max_count_users(10), room_id(rid) {}
 	string get_room_id();
 	queue<Message> get_messages_to_sent(int last);
 	void generate_msgs();

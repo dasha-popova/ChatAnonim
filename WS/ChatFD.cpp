@@ -46,13 +46,15 @@ class ChatFD : virtual public fastcgi::Component, virtual public fastcgi::Handle
 					user_id = req->getArg("user_id");
 					/// проверить есть ли юзер внутри мапы, если нет то добавить его в комнату и вывести все текущие сообщения
 					queue<Message> msg_to_user = database.rooms[database.user_room[user_id]].get_messages_to_sent(database.user_last_msg[user_id]);
-					for (int i = 0; i < msg_to_user.size(); ++i)
+					stream << "{ msgs:\n\t[\n";
+					while(!msg_to_user.empty())
 					{
 						string msg_user_id = msg_to_user.front().get_user_id();
 						string content = msg_to_user.front().get_msg_content();
-						stream << msg_user_id << ":\t " << content << "\n";
+						stream <<"\t\t{ " << "user_id: \"" << msg_user_id << "\",\t msg_content: \"" << content << "\"}\n";
 						msg_to_user.pop();
 					}
+					stream << "\t]\n}\n";
 				}
 				else
 				{

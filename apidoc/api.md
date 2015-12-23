@@ -7,15 +7,11 @@ GET 	/api/v1/msg/?user_id=102
 	{ 
 	  "msgs" : [
 			{ 
-			  "msg_id" : 4, 
 			  "user_id": 105,
-			  "room_id" : 3,
 			  "msg_content" : "bla bla bla" 
 			},
 			{ 
-			  "msg_id" : 5,
 			  "user_id": 108,
-			  "room_id" : 3,
 			  "msg_content" : "HELLO =)"
 			} 
 		   ]

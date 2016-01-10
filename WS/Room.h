@@ -16,11 +16,16 @@ private:
 	queue<Message> messages_to_sent;
 
 public:
-	Room() : max_count_users(10), room_id("") {}
-	Room(const string rid) : max_count_users(10), room_id(rid) {}
+	int curr_count_users;
+	int last_msg_id;
+	Room() : max_count_users(10), last_msg_id(0), curr_count_users(0), room_id("") {}
+	Room(const string rid) : max_count_users(10), last_msg_id(0), curr_count_users(0), room_id(rid) {}
 	string get_room_id();
-	queue<Message> get_messages_to_sent(int last);
+	queue<Message> get_messages_to_sent();
+	int get_first_mid_in_queue();
 	void generate_msgs();
 	Room& operator=(const Room& right);
+	bool is_available_to_add();
+	void add_new_msg(string);
 	~Room(){}
 };

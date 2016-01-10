@@ -30,3 +30,12 @@ POST 	/api/v1/msg/new/
 	400 - Bad request 
 
 
+POST 	/api/v1/users/new/?nick=blabla
+Добавление нового пользователя в какую-то комнату.  
+Выходной формат: 
+	{
+		"user_id": 309
+	}
+Коды возврата:
+	200 - Оk
+	400 - Bad request 

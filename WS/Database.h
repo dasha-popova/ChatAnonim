@@ -5,24 +5,26 @@
 #include <set>
 #include "Room.h"
 #include <map>
+#include <mutex>
 using namespace std;
 
 class Database
 {
 private:
-	set<string> avaiable_rooms;
-	int last_room_id;
-	int last_user_id;
+	static set<string> avaiable_rooms;
+	static mutex mtx;
 public:
-	map<string, Room> rooms;
-	map<string, string> user_room;
-	map<string, int> user_last_msg;
-	map<string, string> user_nick;
-	Database() : last_room_id(0), last_user_id(0) {}
+	static int last_room_id;
+	static int last_user_id;
+	static map<string, Room> rooms;
+	static map<string, string> user_room;
+	static map<string, int> user_last_msg;
+	static map<string, string> user_nick;
+	Database();
 	~Database() {}
-	void generate_users_rooms();
-	string find_available_room();
-	void clear_rooms();
-	string add_new_user(string);
+	static void generate_users_rooms();
+	static string find_available_room();
+	static void clear_rooms();
+	static string add_new_user(string);
 };
 

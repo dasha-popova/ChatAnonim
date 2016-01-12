@@ -1,0 +1,13 @@
+115
+POST /api/v1/msg/new HTTP/1.1
+Host: localhost
+Content-Type: application/json
+
+{"user_id":"22", "content":"xyq"}
+
+62
+POST /api/v1/user/new HTTP/1.1
+Host: localhost
+
+nick=qwerty
+

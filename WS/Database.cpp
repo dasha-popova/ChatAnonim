@@ -55,8 +55,8 @@ void Database::clear_rooms()
 	{
 		string uid = it->first;
 		string rid = it->second;
-		if (rooms[rid].get_first_mid_in_queue() > user_last_msg[uid] + 20)
-			// выкидываем юзера, если он не получал уже больше чем 20 новых сообщений 
+		if (rooms[rid].get_first_mid_in_queue() > user_last_msg[uid] + 100)
+			// выкидываем юзера, если он не получал уже больше чем 100 новых сообщений 
 		{
 			if (!rooms[rid].is_available_to_add()) 
 				avaiable_rooms.insert(rid);  
@@ -70,7 +70,7 @@ void Database::clear_rooms()
 
 string Database::add_new_user(string nickname)
 {
-	clear_rooms();
+	//clear_rooms();
 	string rid = find_available_room();
 	stringstream ss2;
 	mtx.lock(); ///
@@ -95,9 +95,9 @@ string Database::add_new_user(string nickname)
 
 bool Database::add_new_message(string uid, string msg_cntnt)
 {
-	mtx_user.lock(); ///
 	if (!have_such_user(uid))
 		return false;
+	mtx_user.lock(); ///
 	string rid = user_room[uid];
 	string nick = user_nick[uid];
 	mtx_user.unlock(); ///
@@ -109,16 +109,21 @@ bool Database::add_new_message(string uid, string msg_cntnt)
 
 bool Database::have_such_user(string uid)
 {
-	return !user_room[uid].empty();
+	mtx_user_room.lock();
+	bool flag = !user_room[uid].empty();
+	mtx_user_room.unlock();
+	return flag;
 }
 
 string Database::messages_json(string uid)
 {
 	string result = "";
 	mtx_rooms.lock(); ///
-	mtx_user_room.lock(); ///
+	mtx_user_room.lock(); /// 
+	mtx_user.lock(); ///
 	//queue<Message> msg_to_user = rooms[user_room[uid]].get_messages_to_sent();
 	queue<Message> msg_to_user = rooms[user_room[uid]].get_messages_to_sent(user_last_msg[uid]);
+	mtx_user.unlock(); ///
 	mtx_rooms.unlock(); ///
 	mtx_user_room.unlock(); ///
 	result.append("{ msgs:\n\t[\n");
@@ -126,9 +131,9 @@ string Database::messages_json(string uid)
 	{
 		string msg_user_nick = msg_to_user.front().get_user_nick();
 		string content = msg_to_user.front().get_msg_content();
-		result.append("\t\t{ nick: \"");
+		result.append("\t\t{ \"nick\": \"");
 		result.append(msg_user_nick);
-		result.append("\",\t msg_content: \"");
+		result.append("\",\t \"content\": \"");
 		result.append(content);
 		result.append("\"}\n");
 		//cout << msg_user_nick << ":\t " << content << endl;

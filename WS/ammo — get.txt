@@ -1,0 +1,7 @@
+[Connection: close]
+[Host: target.example.com]
+[Cookies: None]
+/api/v1/msg?user_id=1
+/api/v1/msg?user_id=12
+/api/v1/msg?user_id=16
+/api/v1/msg?user_id=22

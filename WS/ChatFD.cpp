@@ -108,7 +108,7 @@ class ChatFD : virtual public fastcgi::Component, virtual public fastcgi::Handle
 					} catch (boost::property_tree::json_parser_error &e) { // если json не валидный
 						sendError(req, stream, 400);
 					} 
-					if(!database.add_new_message(user_id, "MY NEW MESSAGE"))
+					if(!database.add_new_message(user_id, content))
 						sendError(req, stream, 400);
 				}
 			}

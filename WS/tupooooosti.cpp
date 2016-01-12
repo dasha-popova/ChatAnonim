@@ -11,17 +11,28 @@ int main()
 	string user_id = "";
 
 	user_id = database.add_new_user("blabla");
-	cout << "New user: " <<  user_id<< endl;
-	queue<Message> msg_to_user = database.rooms[database.user_room[user_id]].get_messages_to_sent();
-	while (!msg_to_user.empty())
-	{
-		string msg_user_nick = msg_to_user.front().get_user_nick();
-		string content = msg_to_user.front().get_msg_content();
-		cout << msg_user_nick << ":\t " << content << endl;
-		msg_to_user.pop();
-	}
+	cout << "New user: " << user_id << endl;
+	cout << "New user: " << database.add_new_user("blabla") << endl; // add new user
 
-	cout << "New user: " << database.add_new_user("blabla") << endl;
+		//add new msg
+	if (database.have_such_user(user_id)) // get all msg in the room
+	{
+		cout << database.messages_json(user_id);
+	}
+	else
+		cout << "no such user. need registration" << endl;
+	database.add_new_message(user_id, "MY NEW MESSAGE");
+	if (!database.add_new_message("23", "MY NEW MESSAGE13"))
+		cout << "23" << " oops" << endl;
+	if (!database.add_new_message("22", "MY NEW MESSAGE22"))
+		cout << "22" << " oops" << endl;
+	if (database.have_such_user(user_id)) // get all msg in the room
+	{
+		cout << database.messages_json(user_id);
+	}
+	else
+		cout << "no such user. need registration" << endl;
+
 	system("pause");
 	return 0;
 

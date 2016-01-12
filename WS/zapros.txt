@@ -1,0 +1,8 @@
+POST new msg
+ curl -H "Content-Type: application/json" -v -X POST -d '{"user_id":"12","content":"xyz"}' http://localhost/api/v1/msg/new
+
+POST new user
+ curl -v -X POST "http://localhost/api/v1/user/new?nick=kfd"
+
+GET msgs
+ curl -v "http://localhost/api/v1/msg?user_id=12"   

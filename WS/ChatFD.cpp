@@ -4,6 +4,8 @@
 #include <fastcgi2/request.h>
 #include "fastcgi2/stream.h"
 #include <fastcgi2/data_buffer.h>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -11,6 +13,8 @@
 #include <vector>
 #include <queue>
 #include "Database.h"
+namespace pt = boost::property_tree;
+namespace jsp = pt::json_parser;
 
 class ChatFD : virtual public fastcgi::Component, virtual public fastcgi::Handler
 {
@@ -45,24 +49,22 @@ class ChatFD : virtual public fastcgi::Component, virtual public fastcgi::Handle
 				if (req->hasArg("user_id"))
 				{
 					user_id = req->getArg("user_id");
-					/// проверить есть ли юзер внутри мапы, если нет то добавить его в комнату и вывести все текущие сообщения
-					queue<Message> msg_to_user = database.rooms[database.user_room[user_id]].get_messages_to_sent();
-					stream << "{ msgs:\n\t[\n";
-					while (!msg_to_user.empty())
+					if (database.have_such_user(user_id)) // get all msg in the room
 					{
-						string msg_user_nick = msg_to_user.front().get_user_nick();
-						string content = msg_to_user.front().get_msg_content();
-						stream << "\t\t{ " << "user_id: \"" << msg_user_nick << "\",\t msg_content: \"" << content << "\"}\n";
-						msg_to_user.pop();
+						stream << database.messages_json(user_id);
 					}
-					stream << "\t]\n}\n";
+					else 
+					{
+						string msg = "Need registration."; 
+						sendError(req, stream, msg, 400);
+					}
 				}
 				else
 				{
 					sendError(req, stream, 400);
 				}
 			}
-			if (requestMethod == "POST")
+			if (requestMethod == "POST" && req->countArgs() > 0)
 			{
 				if (req->hasArg("nick"))
 				{
@@ -78,9 +80,38 @@ class ChatFD : virtual public fastcgi::Component, virtual public fastcgi::Handle
 					}
 					
 				}
+				else
+				{
+					fastcgi :: DataBuffer buffer = req->requestBody();
+					std :: string jsonString;
+					buffer.toString(jsonString);
+					
+					string user_id;
+					string content;
+					try {
+						std::stringstream ss(jsonString);
+						   pt::ptree tree;
+						   jsp::read_json(ss, tree);
+						 
+						for(auto &v: tree)
+						{
+							if (v.first == "user_id")
+							{
+								user_id = v.second.get<std::string>("");
+							}
+							if (v.first == "content")
+							{
+								content = v.second.get<std::string>("");
+							}
+						}
+						//stream << "oooops" << "\n";
+					} catch (boost::property_tree::json_parser_error &e) { // если json не валидный
+						sendError(req, stream, 400);
+					} 
+					if(!database.add_new_message(user_id, "MY NEW MESSAGE"))
+						sendError(req, stream, 400);
+				}
 			}
-
-				
         }
 
 		void sendError(fastcgi::Request *req, fastcgi::RequestStream &stream, int status)
@@ -90,7 +121,7 @@ class ChatFD : virtual public fastcgi::Component, virtual public fastcgi::Handle
 		}
 		void sendError(fastcgi::Request *req, fastcgi::RequestStream &stream, string &message, int status)
 		{
-			stream << "{ \"error\" : \"" + message + "\" }";
+			stream << "{ \"error\" : \"" + message + "\" }\n";
 			req->setStatus(status);
 		}
 

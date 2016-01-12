@@ -22,10 +22,11 @@ public:
 	Room(const string rid) : max_count_users(10), last_msg_id(0), curr_count_users(0), room_id(rid) {}
 	string get_room_id();
 	queue<Message> get_messages_to_sent();
+	queue<Message> get_messages_to_sent(int);
 	int get_first_mid_in_queue();
 	void generate_msgs();
 	Room& operator=(const Room& right);
 	bool is_available_to_add();
-	void add_new_msg(string);
+	void add_new_msg(string, string);
 	~Room(){}
 };

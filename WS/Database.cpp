@@ -36,21 +36,25 @@ string Database::find_available_room()
 	else
 	{
 		stringstream ss1;
-		mtx.lock(); ///
+		
+		//mtx.lock(); ///
+		lock_guard<mutex> lock_room_id(mtx);
 		ss1 << ++last_room_id;
-		mtx.unlock(); ///
+		//mtx.unlock(); ///
 		string id = ss1.str();
-		mtx_rooms.lock(); ///
+		//mtx_rooms.lock(); ///
+		lock_guard<mutex> lock_room(mtx_rooms);
 		rooms.insert(make_pair(id, Room(id)));
 		avaiable_rooms.insert(id);
-		mtx_rooms.unlock(); ///
+		//mtx_rooms.unlock(); ///
 		return id;
 	}
 }
 
 void Database::clear_rooms()
 {
-	mtx_user_room.lock();
+	//mtx_user_room.lock();
+	lock_guard<mutex> lock_ur(mtx_user_room);
 	for (map<string, string>::iterator it = user_room.begin(); it != user_room.end(); ++it)
 	{
 		string uid = it->first;
@@ -58,6 +62,7 @@ void Database::clear_rooms()
 		if (rooms[rid].get_first_mid_in_queue() > user_last_msg[uid] + 100)
 			// выкидываем юзера, если он не получал уже больше чем 100 новых сообщений 
 		{
+			lock_guard<mutex> lock_rooms(mtx_rooms);
 			if (!rooms[rid].is_available_to_add()) 
 				avaiable_rooms.insert(rid);  
 			rooms[rid].curr_count_users--;
@@ -65,7 +70,7 @@ void Database::clear_rooms()
 			user_last_msg.erase(uid);
 		}
 	}
-	mtx_user_room.unlock();
+	//mtx_user_room.unlock();
 }
 
 string Database::add_new_user(string nickname)
@@ -73,23 +78,27 @@ string Database::add_new_user(string nickname)
 	//clear_rooms();
 	string rid = find_available_room();
 	stringstream ss2;
-	mtx.lock(); ///
+	//mtx.lock(); ///
+	lock_guard<mutex> lock_user_id(mtx);
 	ss2 << ++last_user_id;
-	mtx.unlock(); ///
+	//mtx.unlock(); ///
 	string uid = ss2.str(); 
-	mtx_user_room.lock(); ///
+	//mtx_user_room.lock(); ///
+	lock_guard<mutex> lock_ur(mtx_user_room);
 	user_room.insert(make_pair(uid, rid));
-	mtx_user_room.unlock(); ///
-	mtx_user.lock(); ///
+	//mtx_user_room.unlock(); ///
+	//mtx_user.lock(); ///
+	lock_guard<mutex> lock_user(mtx_user);
 	user_last_msg.insert(make_pair(uid, rooms[rid].get_first_mid_in_queue() - 1));
+	lock_guard<mutex> lock_rooms(mtx_rooms);
 	rooms[rid].curr_count_users++;
-	user_nick.insert(make_pair(uid, nickname));
-	mtx_user.unlock(); ///
-	mtx_rooms.lock(); ///
+	user_nick.insert(make_pair(uid, nickname));  
+	//mtx_user.unlock(); ///
+	//mtx_rooms.lock(); ///
+				//lock_guard<mutex> lock(mtx_rooms);
 	if (!rooms[rid].is_available_to_add()) //убираем комнату из списка доступных, при полном заполнении
 		avaiable_rooms.erase(rid);
-	mtx_rooms.unlock(); ///
-	//rooms[rid].generate_msgs();
+	//mtx_rooms.unlock(); ///
 	return ss2.str();
 }
 
@@ -97,21 +106,24 @@ bool Database::add_new_message(string uid, string msg_cntnt)
 {
 	if (!have_such_user(uid))
 		return false;
-	mtx_user.lock(); ///
+	//mtx_user.lock(); ///
+	lock_guard<mutex> lock_user(mtx_user);
 	string rid = user_room[uid];
 	string nick = user_nick[uid];
-	mtx_user.unlock(); ///
-	mtx_rooms.lock(); ///
+	//mtx_user.unlock(); ///
+	//mtx_rooms.lock(); ///
+	lock_guard<mutex> lock_rooms(mtx_rooms);
 	rooms[rid].add_new_msg(nick, msg_cntnt);
-	mtx_rooms.unlock(); ///
+	//mtx_rooms.unlock(); ///
 	return true;
 }
 
 bool Database::have_such_user(string uid)
 {
-	mtx_user_room.lock();
+	//mtx_user_room.lock();
+	lock_guard<mutex> lock(mtx_user_room);
 	bool flag = !user_room[uid].empty();
-	mtx_user_room.unlock();
+	//mtx_user_room.unlock();
 	return flag;
 }
 
@@ -137,10 +149,11 @@ string Database::messages_json(string uid)
 		result.append(content);
 		result.append("\"}\n");
 		//cout << msg_user_nick << ":\t " << content << endl;
-		mtx_user.lock(); ///
+		//mtx_user.lock(); ///
+		lock_guard<mutex> lock(mtx_user);
 		if (msg_to_user.size() == 1)
 			user_last_msg[uid] = msg_to_user.front().get_msg_id();
-		mtx_user.unlock(); ///
+		//mtx_user.unlock(); ///
 		msg_to_user.pop();
 	}
 	result.append("\t]\n}\n");
